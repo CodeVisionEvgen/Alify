@@ -8,7 +8,7 @@ export type GenreDocument = Document<Genre>;
 })
 export class Genre {
   @Prop({
-    isRequired: true,
+    required: true,
   })
   name: string;
 }

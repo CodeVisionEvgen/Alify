@@ -1,30 +1,34 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { CreateGenreDto } from './dto/create-genre.dto';
 import { UpdateGenreDto } from './dto/update-genre.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Genre } from './entities/genre.entity';
 import { Model } from 'mongoose';
+import { GENRE_IS_EXISTS } from 'consts/genre.consts';
 
 @Injectable()
 export class GenreService {
   constructor(@InjectModel(Genre.name) readonly genreModel: Model<Genre>) {}
-  create(createGenreDto: CreateGenreDto) {
+  async create(createGenreDto: CreateGenreDto) {
+    const genre = await this.genreModel.findOne({ name: createGenreDto.name });
+    if (genre)
+      throw new ConflictException(GENRE_IS_EXISTS(createGenreDto.name));
     return new this.genreModel(createGenreDto).save();
   }
 
   findAll() {
-    return `This action returns all genre`;
+    return this.genreModel.find();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} genre`;
+  findOneByName(name: string) {
+    return this.genreModel.findOne({ name });
   }
 
-  update(id: number, updateGenreDto: UpdateGenreDto) {
-    return `This action updates a #${id} genre`;
+  updateByName(name: string, updateGenreDto: UpdateGenreDto) {
+    return this.genreModel.updateOne({ name }, updateGenreDto);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} genre`;
+  removeByName(name: string) {
+    return this.genreModel.deleteOne({ name });
   }
 }

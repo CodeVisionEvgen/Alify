@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  HttpCode,
 } from '@nestjs/common';
 import { GenreService } from './genre.service';
 import { CreateGenreDto } from './dto/create-genre.dto';
@@ -16,6 +17,7 @@ export class GenreController {
   constructor(private readonly genreService: GenreService) {}
 
   @Post()
+  @HttpCode(201)
   create(@Body() createGenreDto: CreateGenreDto) {
     return this.genreService.create(createGenreDto);
   }
@@ -25,18 +27,18 @@ export class GenreController {
     return this.genreService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.genreService.findOne(+id);
+  @Get(':name')
+  findOne(@Param('name') name: string) {
+    return this.genreService.findOneByName(name);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateGenreDto: UpdateGenreDto) {
-    return this.genreService.update(+id, updateGenreDto);
+  @Patch(':name')
+  update(@Param('name') name: string, @Body() updateGenreDto: UpdateGenreDto) {
+    return this.genreService.updateByName(name, updateGenreDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.genreService.remove(+id);
+  @Delete(':name')
+  remove(@Param('name') name: string) {
+    return this.genreService.removeByName(name);
   }
 }
