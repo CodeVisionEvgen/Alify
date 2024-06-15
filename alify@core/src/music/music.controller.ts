@@ -15,13 +15,13 @@ import { CreateMusicDto } from './dto/create-music.dto';
 import { UpdateMusicDto } from './dto/update-music.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FileType } from 'types/file.types';
-import { DropboxService } from 'src/dropbox/dropbox.service';
+import { BoxService } from 'src/box/box.service';
 
 @Controller('music')
 export class MusicController {
   constructor(
     private readonly musicService: MusicService,
-    private readonly dropBoxService: DropboxService,
+    private readonly boxService: BoxService,
   ) {}
 
   @UseInterceptors(
@@ -42,10 +42,10 @@ export class MusicController {
   ) {
     const musicData = { ...createMusicDto };
     if (!createMusicDto.name) {
-      musicData.name = music.originalName;
+      musicData.name = music.originalname;
     }
-    console.log(await this.dropBoxService.sendMusic(music));
-    return this.musicService.create(musicData);
+    const MusicURL = await this.boxService.uploadAudio(music);
+    return this.musicService.create({ ...musicData, url: MusicURL });
   }
 
   @Get()

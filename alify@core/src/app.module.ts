@@ -7,7 +7,7 @@ import { MusicModule } from './music/music.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongoFactoryConf } from 'confs/mongodb.conf';
-import { DropboxModule } from './dropbox/dropbox.module';
+import { BoxModule } from './box/box.module';
 @Module({
   imports: [
     GenreModule,
@@ -21,7 +21,7 @@ import { DropboxModule } from './dropbox/dropbox.module';
       inject: [ConfigService],
       useFactory: MongoFactoryConf,
     }),
-    DropboxModule,
+    BoxModule,
   ],
   controllers: [AppController],
   providers: [AppService],

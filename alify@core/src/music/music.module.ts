@@ -3,13 +3,13 @@ import { MusicService } from './music.service';
 import { MusicController } from './music.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Music, MusicSchema } from './entities/music.entity';
-import { DropboxModule } from 'src/dropbox/dropbox.module';
+import { BoxModule } from 'src/box/box.module';
 
 @Module({
   controllers: [MusicController],
   providers: [MusicService],
   imports: [
-    DropboxModule,
+    BoxModule,
     MongooseModule.forFeature([
       {
         name: Music.name,
