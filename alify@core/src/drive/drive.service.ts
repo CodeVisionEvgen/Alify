@@ -31,6 +31,6 @@ export class DriveService {
       })
     ).data;
 
-    return `https://drive.google.com/uc?export=download&id=${id}&confirm=t`;
+    return id;
   }
 }

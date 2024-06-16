@@ -16,8 +16,48 @@ export class MusicService {
     return new this.musicModel(createMusicDto).save();
   }
 
-  findAll() {
-    return this.musicModel.find();
+  async findAll() {
+    const musics = await this.musicModel
+      .aggregate()
+      .match({})
+      .sort({ name: 1 })
+      .addFields({
+        author: {
+          $toObjectId: '$author',
+        },
+      })
+      .lookup({
+        from: 'authors',
+        as: 'authorTemp',
+        localField: 'author',
+        foreignField: '_id',
+      })
+      .unwind('authorTemp')
+      .addFields({
+        author: '$authorTemp.name',
+      })
+      .project({
+        authorTemp: 0,
+      })
+      .addFields({
+        genre: {
+          $toObjectId: '$genre',
+        },
+      })
+      .lookup({
+        from: 'genres',
+        as: 'genreTemp',
+        localField: 'genre',
+        foreignField: '_id',
+      })
+      .unwind('genreTemp')
+      .addFields({
+        genre: '$genreTemp.name',
+      })
+      .project({
+        genreTemp: 0,
+      });
+    return musics;
   }
 
   findOneByName(name: string) {
@@ -26,6 +66,10 @@ export class MusicService {
 
   updateByName(name: string, updateMusicDto: UpdateMusicDto) {
     return this.musicModel.updateOne({ name }, updateMusicDto);
+  }
+
+  updateManyByAuthor(author: string, updateMusicDto: UpdateMusicDto) {
+    return this.musicModel.updateMany({ author }, updateMusicDto);
   }
 
   removeByName(name: string) {

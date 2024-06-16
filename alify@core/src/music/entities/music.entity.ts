@@ -14,7 +14,11 @@ export class Music {
   @Prop({
     default: null,
   })
-  genre: string;
+  author: string | null;
+  @Prop({
+    default: null,
+  })
+  genre: string | null;
   @Prop({
     required: true,
   })

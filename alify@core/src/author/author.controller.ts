@@ -27,7 +27,7 @@ export class AuthorController {
 
   @Get(':name')
   findOne(@Param('name') name: string) {
-    return this.authorService.findOne(name);
+    return this.authorService.findOneByName(name);
   }
 
   @Patch(':name')
@@ -35,11 +35,11 @@ export class AuthorController {
     @Param('name') name: string,
     @Body() updateAuthorDto: UpdateAuthorDto,
   ) {
-    return this.authorService.update(name, updateAuthorDto);
+    return this.authorService.updateByName(name, updateAuthorDto);
   }
 
   @Delete(':name')
   remove(@Param('name') name: string) {
-    return this.authorService.remove(name);
+    return this.authorService.removeByName(name);
   }
 }

@@ -16,12 +16,16 @@ import { UpdateMusicDto } from './dto/update-music.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FileType } from 'types/file.types';
 import { DriveService } from 'src/drive/drive.service';
+import { GenreService } from 'src/genre/genre.service';
+import { AuthorService } from 'src/author/author.service';
 
 @Controller('music')
 export class MusicController {
   constructor(
     private readonly musicService: MusicService,
     private readonly driveService: DriveService,
+    private readonly genreService: GenreService,
+    private readonly authorService: AuthorService,
   ) {}
 
   @UseInterceptors(
@@ -44,6 +48,31 @@ export class MusicController {
     if (!createMusicDto.name) {
       musicData.name = music.originalname.split('.')[0];
     }
+
+    if (createMusicDto.genre) {
+      const genre = await this.genreService.findOneByName(createMusicDto.genre);
+      if (genre) musicData.genre = genre._id.toString();
+      else {
+        const newGenre = await this.genreService.create({
+          name: createMusicDto.genre,
+        });
+        musicData.genre = newGenre._id.toString();
+      }
+    }
+
+    if (createMusicDto.author) {
+      const author = await this.authorService.findOneByName(
+        createMusicDto.author,
+      );
+      if (author) musicData.author = author._id.toString();
+      else {
+        const newAuthor = await this.authorService.create({
+          name: createMusicDto.author,
+        });
+        musicData.author = newAuthor._id.toString();
+      }
+    }
+
     const MusicURL = await this.driveService.uploadAudio(music);
     return this.musicService.create({ ...musicData, url: MusicURL });
   }

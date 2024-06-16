@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { GenreModule } from './genre/genre.module';
@@ -8,10 +8,11 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongoFactoryConf } from 'confs/mongodb.conf';
 import { DriveModule } from './drive/drive.module';
+import { ProxyModule } from './proxy/proxy.module';
 @Module({
   imports: [
     GenreModule,
-    AuthorModule,
+    forwardRef(() => AuthorModule),
     MusicModule,
     ConfigModule.forRoot({
       isGlobal: true,
@@ -22,6 +23,7 @@ import { DriveModule } from './drive/drive.module';
       useFactory: MongoFactoryConf,
     }),
     DriveModule,
+    ProxyModule,
   ],
   controllers: [AppController],
   providers: [AppService],
