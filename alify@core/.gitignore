@@ -1,6 +1,9 @@
 # env's
 .env
 
+# google api
+alify-426614-606136738437.json
+
 # compiled output
 /dist
 /node_modules

@@ -7,5 +7,8 @@ export class CreateMusicDto {
   @IsOptional()
   @IsString()
   genre?: string;
+  @IsOptional()
+  @IsString()
+  author?: string;
   url: string;
 }

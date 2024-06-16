@@ -1,26 +1,34 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { CreateAuthorDto } from './dto/create-author.dto';
 import { UpdateAuthorDto } from './dto/update-author.dto';
+import { InjectModel } from '@nestjs/mongoose';
+import { Author } from './entities/author.entity';
+import { Model } from 'mongoose';
 
 @Injectable()
 export class AuthorService {
-  create(createAuthorDto: CreateAuthorDto) {
-    return 'This action adds a new author';
+  constructor(@InjectModel(Author.name) private authorModel: Model<Author>) {}
+  async create(createAuthorDto: CreateAuthorDto) {
+    const author = await this.authorModel.findOne({
+      name: createAuthorDto.name,
+    });
+    if (createAuthorDto.name === author.name) throw new ConflictException();
+    return new this.authorModel(createAuthorDto).save();
   }
 
   findAll() {
-    return `This action returns all author`;
+    return this.authorModel.find();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} author`;
+  findOne(name: string) {
+    return this.authorModel.findOne({ name });
   }
 
-  update(id: number, updateAuthorDto: UpdateAuthorDto) {
-    return `This action updates a #${id} author`;
+  update(name: string, updateAuthorDto: UpdateAuthorDto) {
+    return this.authorModel.updateOne({ name }, updateAuthorDto);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} author`;
+  remove(name: string) {
+    return this.authorModel.deleteOne({ name });
   }
 }
