@@ -42,7 +42,7 @@ export class MusicController {
   ) {
     const musicData = { ...createMusicDto };
     if (!createMusicDto.name) {
-      musicData.name = music.originalname.split('.')[1];
+      musicData.name = music.originalname.split('.')[0];
     }
     const MusicURL = await this.driveService.uploadAudio(music);
     return this.musicService.create({ ...musicData, url: MusicURL });
