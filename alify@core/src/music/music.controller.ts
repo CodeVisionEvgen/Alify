@@ -9,6 +9,7 @@ import {
   UseInterceptors,
   BadRequestException,
   UploadedFile,
+  ConflictException,
 } from '@nestjs/common';
 import { MusicService } from './music.service';
 import { CreateMusicDto } from './dto/create-music.dto';
@@ -18,6 +19,7 @@ import { FileType } from 'types/file.types';
 import { DriveService } from 'src/drive/drive.service';
 import { GenreService } from 'src/genre/genre.service';
 import { AuthorService } from 'src/author/author.service';
+import { MUSIC_IS_EXISTS } from 'consts/music.consts';
 
 @Controller('music')
 export class MusicController {
@@ -44,6 +46,11 @@ export class MusicController {
     @UploadedFile()
     music: FileType,
   ) {
+    const musicInDb = await this.musicService.findOneByName(
+      createMusicDto.name,
+    );
+    if (musicInDb)
+      throw new ConflictException(MUSIC_IS_EXISTS(createMusicDto.name));
     const musicData = { ...createMusicDto };
     if (!createMusicDto.name) {
       musicData.name = music.originalname.split('.')[0];

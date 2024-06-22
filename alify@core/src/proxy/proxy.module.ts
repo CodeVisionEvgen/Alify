@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { ProxyController } from './proxy.controller';
+import { ProxyController } from './proxy.controller.js';
 
 @Module({
   controllers: [ProxyController],

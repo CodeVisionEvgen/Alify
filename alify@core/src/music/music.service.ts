@@ -16,10 +16,10 @@ export class MusicService {
     return new this.musicModel(createMusicDto).save();
   }
 
-  async findAll() {
-    const musics = await this.musicModel
+  baseAggregation(matchCondition = {}) {
+    return this.musicModel
       .aggregate()
-      .match({})
+      .match(matchCondition)
       .sort({ name: 1 })
       .addFields({
         author: {
@@ -57,11 +57,16 @@ export class MusicService {
       .project({
         genreTemp: 0,
       });
+  }
+
+  async findAll() {
+    const musics = await this.baseAggregation().exec();
     return musics;
   }
 
-  findOneByName(name: string) {
-    return `This action returns a #${name} music`;
+  async findOneByName(name: string) {
+    const musics = await this.baseAggregation({ name }).exec();
+    return musics.length ? musics[0] : null;
   }
 
   updateByName(name: string, updateMusicDto: UpdateMusicDto) {
