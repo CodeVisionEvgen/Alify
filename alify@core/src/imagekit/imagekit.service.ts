@@ -20,7 +20,7 @@ export class ImagekitService {
       const imageUploaded = await this.#imageKit.upload({
         file: image,
         fileName: uuid,
-        folder: 'tumbs',
+        folder: 'thumbs',
       });
       return imageUploaded.url;
     } catch (error) {

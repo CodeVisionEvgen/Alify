@@ -23,6 +23,10 @@ export class Music {
     required: true,
   })
   url: string;
+  @Prop({
+    default: null,
+  })
+  thumbnail: string;
 }
 
 export const MusicSchema = SchemaFactory.createForClass(Music);

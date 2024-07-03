@@ -1,1 +1,1 @@
-export const GENRE_IS_EXISTS = (name: string = '') => `Жанр ${name} вже існує`;
+export const GENRE_IS_EXISTS = (name: string = '') => `Genre ${name} is exists`;

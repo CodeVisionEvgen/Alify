@@ -16,14 +16,27 @@ export class MusicService {
     return new this.musicModel(createMusicDto).save();
   }
 
+  async updateManyByIds(ids: string[], content: UpdateMusicDto) {
+    if (ids) {
+      const promises = ids.map((id: string) =>
+        this.musicModel.updateOne({ _id: id }, content),
+      );
+      return await Promise.all(promises);
+    }
+  }
+
   baseAggregation(matchCondition = {}) {
     return this.musicModel
       .aggregate()
       .match(matchCondition)
-      .sort({ name: 1 })
+      .sort({ createdAt: -1 })
       .addFields({
         author: {
-          $toObjectId: '$author',
+          $cond: {
+            if: { $gt: [{ $strLenCP: { $ifNull: ['$author', ''] } }, 0] },
+            then: { $toObjectId: '$author' },
+            else: null,
+          },
         },
       })
       .lookup({
@@ -32,7 +45,7 @@ export class MusicService {
         localField: 'author',
         foreignField: '_id',
       })
-      .unwind('authorTemp')
+      .unwind({ path: '$authorTemp', preserveNullAndEmptyArrays: true })
       .addFields({
         author: '$authorTemp.name',
       })
@@ -41,7 +54,11 @@ export class MusicService {
       })
       .addFields({
         genre: {
-          $toObjectId: '$genre',
+          $cond: {
+            if: { $gt: [{ $strLenCP: { $ifNull: ['$genre', ''] } }, 0] },
+            then: { $toObjectId: '$genre' },
+            else: null,
+          },
         },
       })
       .lookup({
@@ -50,7 +67,10 @@ export class MusicService {
         localField: 'genre',
         foreignField: '_id',
       })
-      .unwind('genreTemp')
+      .unwind({
+        path: '$genreTemp',
+        preserveNullAndEmptyArrays: true,
+      })
       .addFields({
         genre: '$genreTemp.name',
       })
@@ -61,6 +81,13 @@ export class MusicService {
 
   async findAll() {
     const musics = await this.baseAggregation().exec();
+    return musics;
+  }
+
+  async findWithoutGenres() {
+    const musics = await this.baseAggregation({
+      $or: [{ genre: '' }, { genre: null }],
+    }).exec();
     return musics;
   }
 

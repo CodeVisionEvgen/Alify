@@ -11,4 +11,5 @@ export class CreateMusicDto {
   @IsString()
   author?: string;
   url: string;
+  thumbnail?: string;
 }

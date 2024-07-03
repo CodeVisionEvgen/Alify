@@ -1,1 +1,1 @@
-export const MUSIC_IS_EXISTS = (name: string) => `Трек ${name} вже існує`;
+export const MUSIC_IS_EXISTS = (name: string) => `Music ${name} is exists`;

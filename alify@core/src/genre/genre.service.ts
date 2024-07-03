@@ -1,27 +1,14 @@
-import {
-  ConflictException,
-  Inject,
-  Injectable,
-  forwardRef,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { CreateGenreDto } from './dto/create-genre.dto';
 import { UpdateGenreDto } from './dto/update-genre.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Genre } from './entities/genre.entity';
 import { Model } from 'mongoose';
-import { GENRE_IS_EXISTS } from 'consts/genre.consts';
-import { MusicService } from 'src/music/music.service';
 
 @Injectable()
 export class GenreService {
-  constructor(
-    @InjectModel(Genre.name) readonly genreModel: Model<Genre>,
-    @Inject(forwardRef(() => MusicService)) private musicService: MusicService,
-  ) {}
+  constructor(@InjectModel(Genre.name) readonly genreModel: Model<Genre>) {}
   async create(createGenreDto: CreateGenreDto) {
-    const genre = await this.genreModel.findOne({ name: createGenreDto.name });
-    if (genre)
-      throw new ConflictException(GENRE_IS_EXISTS(createGenreDto.name));
     return new this.genreModel(createGenreDto).save();
   }
 
