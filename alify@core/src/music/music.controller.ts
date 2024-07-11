@@ -22,6 +22,8 @@ import { AuthorService } from 'src/author/author.service';
 import { MUSIC_IS_EXISTS } from 'consts/music.consts';
 import * as MusicMetaData from 'music-metadata';
 import { ImagekitService } from 'src/imagekit/imagekit.service';
+import { GENRE_IS_NOT_EXISTS } from 'consts/genre.consts';
+import { StringUtilsService } from 'src/string-utils/string-utils.service';
 @Controller('music')
 export class MusicController {
   BASE_MUSIC_THUMB: string;
@@ -31,6 +33,7 @@ export class MusicController {
     private readonly genreService: GenreService,
     private readonly authorService: AuthorService,
     private readonly imageKitService: ImagekitService,
+    private readonly stringUtilsService: StringUtilsService,
   ) {
     this.BASE_MUSIC_THUMB =
       'https://ik.imagekit.io/sujkmwsrb/thumbs/pngegg.png?updatedAt=1719249303422';
@@ -61,7 +64,7 @@ export class MusicController {
         splitedName = music.originalname.split('.');
       }
       const name = splitedName.filter((e) => e !== 'mp3').join('');
-      musicData.name = name;
+      musicData.name = this.stringUtilsService.toCapitalize(name);
     }
     const musicInDb = await this.musicService.findOneByName(musicData.name);
     if (musicInDb) throw new ConflictException(MUSIC_IS_EXISTS(musicData.name));
@@ -136,6 +139,12 @@ export class MusicController {
   @Get('/byName/:name')
   findOne(@Param('name') name: string) {
     return this.musicService.findOneByName(name);
+  }
+  @Get('/byGenre/:genre')
+  async findMusicsByGenre(@Param('genre') genre: string) {
+    const genreInDb = await this.genreService.findOneByName(genre);
+    if (!genreInDb) throw new BadRequestException(GENRE_IS_NOT_EXISTS(genre));
+    return this.musicService.findByGenre(genreInDb._id.toString());
   }
 
   @Patch(':name')

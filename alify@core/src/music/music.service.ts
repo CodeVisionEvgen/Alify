@@ -25,6 +25,10 @@ export class MusicService {
     }
   }
 
+  findByGenre(genre: string) {
+    return this.baseAggregation({ genre }).exec();
+  }
+
   baseAggregation(matchCondition = {}) {
     return this.musicModel
       .aggregate()

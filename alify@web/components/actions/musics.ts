@@ -16,3 +16,9 @@ export const getMusicWithoutGenres = async (): Promise<
 > => {
   return axios.get("/api/music/without-genres");
 };
+
+export const getMusicListByGenre = async (
+  genre: string
+): Promise<AxiosResponse<IMusic[]>> => {
+  return axios.get(`/api/music/byGenre/${genre}`);
+};

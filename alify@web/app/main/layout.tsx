@@ -12,19 +12,37 @@ import { useLoadingContext } from '@/context/loadingContext';
 import { Spinner } from "@nextui-org/spinner"
 import { Card } from '@nextui-org/card';
 export default function Layout({ children }: { children: React.ReactNode }) {
-  const { musics, setMusics } = useMusicContext();
+  const { musics, setMusics, setIsPlaying, setActiveMusic } = useMusicContext();
   const { isOpen, onClose, onOpen } = useDisclosure();
-  const { modal } = useModalContext();
+  const { modal, modalProps, setModalProps, setModal } = useModalContext();
   const { isLoading } = useLoadingContext();
-
   useEffect(() => {
     if (modal) return onOpen()
-    else onClose()
+    else {
+      onClose();
+      setModalProps(null);
+    }
   }, [modal])
 
   useEffect(() => {
     getMusicList().then(({ data }) => {
       setMusics(data as IMusic[])
+    })
+    navigator.mediaSession.setActionHandler("stop", () => {
+      navigator.mediaSession.playbackState = "paused"
+      setIsPlaying(false);
+    })
+    navigator.mediaSession.setActionHandler("pause", () => {
+      navigator.mediaSession.playbackState = "paused"
+      setIsPlaying(false);
+    })
+    navigator.mediaSession.setActionHandler("play", () => {
+      setIsPlaying(true);
+      navigator.mediaSession.playbackState = "playing"
+    })
+    navigator.mediaSession.setActionHandler("nexttrack", () => {
+    })
+    navigator.mediaSession.setActionHandler("previoustrack", () => {
     })
   }, [])
   return (
@@ -37,7 +55,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         </div>
       </div>
       }
-      <Modal backdrop="opaque" isOpen={isOpen} onClose={onClose}>
+      <Modal placement='top' backdrop="opaque" isOpen={isOpen} onClose={() => {
+        setModal(null);
+        onClose();
+      }} {...modalProps}>
         <ModalContent>
           <ModalHeader>{modal?.modalHeader}</ModalHeader>
           <ModalBody>{modal?.modalBody}</ModalBody>

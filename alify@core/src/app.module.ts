@@ -9,6 +9,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongoFactoryConf } from 'confs/mongodb.conf';
 import { DriveModule } from './drive/drive.module';
 import { ProxyModule } from './proxy/proxy.module';
+import { StringUtilsModule } from './string-utils/string-utils.module';
 @Module({
   imports: [
     GenreModule,
@@ -24,6 +25,7 @@ import { ProxyModule } from './proxy/proxy.module';
     }),
     DriveModule,
     ProxyModule,
+    StringUtilsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

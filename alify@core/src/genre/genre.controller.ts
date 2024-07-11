@@ -14,23 +14,28 @@ import { UpdateGenreDto } from './dto/update-genre.dto';
 import { MusicService } from 'src/music/music.service';
 import { ConflictException } from '@nestjs/common';
 import { GENRE_IS_EXISTS } from 'consts/genre.consts';
+import { StringUtilsService } from 'src/string-utils/string-utils.service';
 
 @Controller('genre')
 export class GenreController {
   constructor(
     private readonly genreService: GenreService,
     private readonly musicService: MusicService,
+    private readonly stringUtilsService: StringUtilsService,
   ) {}
 
   @Post()
   @HttpCode(201)
   async create(@Body() createGenreDto: CreateGenreDto) {
     const genreInDb = await this.genreService.findOneByName(
-      createGenreDto.name.toLocaleLowerCase(),
+      this.stringUtilsService.toCapitalize(createGenreDto.name),
     );
     if (genreInDb)
       throw new ConflictException(GENRE_IS_EXISTS(createGenreDto.name));
-    const genre = await this.genreService.create(createGenreDto);
+    const genre = await this.genreService.create({
+      ...createGenreDto,
+      name: this.stringUtilsService.toCapitalize(createGenreDto.name),
+    });
     await this.musicService.updateManyByIds(createGenreDto.musics, {
       genre: genre._id.toString(),
     });

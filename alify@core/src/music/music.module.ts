@@ -10,12 +10,15 @@ import { ImagekitModule } from 'src/imagekit/imagekit.module';
 import { ImageKitConfigFactory } from 'confs/imagekit.conf';
 import { ConfigService } from '@nestjs/config';
 import { IMAGEKIT_MODULE_TOKEN } from 'src/imagekit/imagekit-config.provider';
+import { StringUtilsService } from 'src/string-utils/string-utils.service';
+import { StringUtilsModule } from 'src/string-utils/string-utils.module';
 
 @Module({
   controllers: [MusicController],
-  providers: [MusicService],
+  providers: [MusicService, StringUtilsService],
   exports: [MusicService],
   imports: [
+    StringUtilsModule,
     DriveModule,
     forwardRef(() => AuthorModule),
     forwardRef(() => GenreModule),

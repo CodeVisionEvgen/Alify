@@ -3,41 +3,68 @@
 import { FavoriteIcon, ShuffleIcon, RepeatIcon, SkipPrevIcon, PlayIcon, SkipNextIcon, VolumeIcon, VolumeDownIcon, VolumeOffIcon, PauseIcon } from '@/assets/svgs'
 import { Button } from '@nextui-org/button'
 import { Slider } from '@nextui-org/slider'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { act, useEffect, useRef, useState } from 'react'
 import { motion } from "framer-motion"
 import BlockDefault from '../block'
 import Image from 'next/image'
 import { IMusic } from '@/types'
 import { useMusicContext } from '@/context/musicContext'
+import { argsToAuthorName } from '@/utils/string'
+import { use } from 'passport'
 export default function AudioPlayer({ musics }: { musics: IMusic[] }) {
-  const { setActiveMusic, activeMusic } = useMusicContext();
+  const { setActiveMusic, activeMusic, isPlaying, setIsPlaying } = useMusicContext();
   const formatTime = (time: number) => {
     const minutes = Math.floor(time / 60);
     const seconds = Math.floor(time % 60);
     return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
   };
+  const [currentTime, setCurrentTime] = useState<number>(0);
   const [volume, setVolume] = useState<number>(50);
-  const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement>();
-  const [audioMetadata, setAudioMetadata] = useState<null | {
-    duration: number;
-    currentTime: number;
-  }>(null)
 
 
+  useEffect(() => {
+    if (audioRef.current !== undefined) {
+      navigator.mediaSession.setPositionState({
+        duration: audioRef.current.duration || 0,
+        playbackRate: audioRef.current.playbackRate,
+        position: audioRef.current.currentTime || 0
+      });
+    }
+  }, [currentTime])
+
+  function updatePositionState() {
+    console.log(activeMusic, audioRef.current)
+    if (activeMusic && audioRef.current) {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: activeMusic.name,
+        artist: activeMusic.author,
+        album: activeMusic.genre,
+        artwork: [
+          { src: activeMusic.thumbnail, sizes: '96x96', type: 'image/png' },
+          { src: activeMusic.thumbnail, sizes: '128x128', type: 'image/png' },
+          { src: activeMusic.thumbnail, sizes: '192x192', type: 'image/png' },
+          { src: activeMusic.thumbnail, sizes: '256x256', type: 'image/png' },
+          { src: activeMusic.thumbnail, sizes: '384x384', type: 'image/png' },
+          { src: activeMusic.thumbnail, sizes: '512x512', type: 'image/png' },
+        ]
+      });
+    }
+  }
 
   const togglePlayPause = () => {
+    setIsPlaying(!isPlaying);
+  };
+
+  useEffect(() => {
     if (audioRef.current) {
       if (isPlaying) {
         audioRef.current.pause();
       } else {
-        audioRef.current.play().catch((error: any) => {
-          console.error("Error playing audio:", error);
-        });
+        audioRef.current.play();
       }
-      setIsPlaying(!isPlaying);
     }
-  };
+  }, [isPlaying])
 
   useEffect(() => {
     if (activeMusic && audioRef.current) {
@@ -47,6 +74,7 @@ export default function AudioPlayer({ musics }: { musics: IMusic[] }) {
           try {
             audioRef.current.load();
             await audioRef.current.play();
+            updatePositionState()
             setIsPlaying(true);
           } catch (error: any) {
             if (error.name === 'AbortError') {
@@ -65,10 +93,10 @@ export default function AudioPlayer({ musics }: { musics: IMusic[] }) {
   return (
     <>
       {activeMusic &&
-        <span className="absolute left-0 bottom-5 w-screen">
-          <div className="w-screen flex justify-center">
+        <span className="absolute left-0 bottom-5 w-screen !z-[9999]">
+          <div className="w-screen flex justify-center !z-[9999] [&>*]:!z-[9999]">
             <div className="flex items-end gap-3">
-              <BlockDefault>
+              <BlockDefault className='!z-[9999]'>
                 <Button size="sm" isIconOnly startContent={<FavoriteIcon fill="currentColor" />} />
                 <Button size="sm" isIconOnly startContent={<ShuffleIcon fill="currentColor" />} />
                 <Button size="sm" isIconOnly startContent={<RepeatIcon fill="currentColor" />} />
@@ -84,43 +112,44 @@ export default function AudioPlayer({ musics }: { musics: IMusic[] }) {
                     } animate={{
                       x: [-300, 300]
                     }}>
-                      {activeMusic.author + " - " + activeMusic.name}
+                      {argsToAuthorName(activeMusic.author, activeMusic.name)}
                     </motion.p>
                   </div>
-                  <p className=' abel-font text-sm ml-2'>{activeMusic.genre}</p>
+                  <p className=' abel-font text-sm ml-2'>{activeMusic.genre || "<unknown>"}</p>
                   <div className='flex items-center'>
-                    <div className=' !bg-opacity-0'>
+                    <div className=' !bg-opacity-0 !z-[9999]'>
                       <Button className=' !bg-opacity-0' size="sm" isIconOnly startContent={<SkipPrevIcon fill="currentColor" />} />
                       <Button className=' !bg-opacity-0' size="sm" isIconOnly startContent={isPlaying ? <PauseIcon fill="currentColor" /> : <PlayIcon fill='currentColor' />} onClick={togglePlayPause} />
                       <Button className=' !bg-opacity-0' size="sm" isIconOnly startContent={<SkipNextIcon fill="currentColor" />} />
                     </div>
-                    <Slider
-                      startContent={<p className=' text-[12px]'>{audioMetadata?.currentTime ? formatTime(audioMetadata?.currentTime) : "0:00"}</p>}
-                      endContent={<p className=' text-[12px]'>{audioMetadata?.duration ? formatTime(audioMetadata?.duration) : "0:00"}</p>}
-                      aria-label="range"
-                      className=' w-[120px]'
-                      renderThumb={(props) => (
-                        <div
-                          {...props}
-                          className="group p-1 top-1/2 bg-white border-small border-white rounded-full cursor-grab data-[dragging=true]:cursor-grabbing"
-                        />
-                      )}
-                      size="sm"
-                      color="foreground"
-                      onChange={(num) => {
-                        if (num) {
-                          // @ts-ignore
-                          audioRef.current.currentTime = num;
-                        }
-                      }}
-                      renderValue={() => {
-                        return audioMetadata?.currentTime ? formatTime(audioMetadata?.currentTime) : "0:00"
-                      }}
-                      maxValue={audioMetadata?.duration ? Math.floor(audioMetadata.duration) : 0}
-                      minValue={0}
-                      value={audioMetadata?.currentTime || 0}
-                      defaultValue={audioMetadata?.currentTime || 0}
-                    />
+                    {audioRef ?
+                      <Slider
+                        startContent={<p className=' text-[12px]'>{currentTime ? formatTime(currentTime) : "0:00"}</p>}
+                        endContent={<p className=' text-[12px]'>{audioRef?.current?.duration ? formatTime(audioRef?.current?.duration) : "0:00"}</p>}
+                        aria-label="range"
+                        className=' w-[120px]'
+                        renderThumb={(props) => (
+                          <div
+                            {...props}
+                            className="group !z-[9999] p-1 top-1/2 bg-white border-small border-white rounded-full cursor-grab data-[dragging=true]:cursor-grabbing"
+                          />
+                        )}
+                        size="sm"
+                        color="foreground"
+                        onChange={(num) => {
+                          if (audioRef.current !== undefined && num) {
+                            setCurrentTime(num as number);
+                            audioRef.current.currentTime = num as number;
+                          }
+                        }}
+                        renderValue={() => {
+                          return currentTime ? formatTime(currentTime) : "0:00"
+                        }}
+                        maxValue={audioRef?.current?.duration ? Math.floor(audioRef?.current?.duration) : 0}
+                        minValue={0}
+                        value={currentTime}
+                      />
+                      : ""}
                   </div>
                 </div>
                 {
@@ -171,29 +200,16 @@ export default function AudioPlayer({ musics }: { musics: IMusic[] }) {
                   defaultValue={volume}
                 />
               </BlockDefault>
-              {activeMusic && <audio onLoadedMetadata={() => {
-                setAudioMetadata({
-                  // @ts-expect-error
-                  duration: audioRef.current?.duration,
-                  // @ts-ignore
-                  currentTime: audioRef.current?.currentTime,
-                })
-              }} preload="metadata" onTimeUpdate={() => {
-                if (audioRef.current) {
-                  setAudioMetadata({
-                    currentTime: audioRef.current?.currentTime,
-                    duration: audioRef.current?.duration,
-                  })
-                }
-              }} onInput={() => {
-                if (audioRef.current) {
-                  setAudioMetadata({
-                    currentTime: audioRef.current?.currentTime,
-                    duration: audioRef.current?.duration,
-                  })
-                }
-              }} className=' hidden' controls ref={audioRef as React.LegacyRef<HTMLAudioElement>}>
-                <source src={`http://localhost:1488/api/proxy/${activeMusic.url}`} />
+              {activeMusic && <audio
+                onTimeUpdate={() => {
+                  if (audioRef.current !== undefined) {
+                    setCurrentTime(audioRef.current.currentTime);
+                  }
+                }}
+                onInput={(time: unknown) => {
+                  setCurrentTime(time as number);
+                }} preload="metadata" className=' hidden' controls ref={audioRef as React.LegacyRef<HTMLAudioElement>}>
+                <source src={`/api/proxy/${activeMusic.url}`} />
               </audio>
               }
             </div>

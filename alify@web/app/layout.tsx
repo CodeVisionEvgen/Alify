@@ -2,8 +2,6 @@ import "@/styles/globals.css";
 import { Metadata, Viewport } from "next";
 import { Open_Sans } from 'next/font/google'
 import { Providers } from "./providers";
-import { MusicProvider } from "@/context/musicContext";
-import { ModalProvider } from "@/context/modalContext";
 
 
 // If loading a variable font, you don't need to specify the font weight
