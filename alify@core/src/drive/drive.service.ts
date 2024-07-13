@@ -15,6 +15,12 @@ export class DriveService {
       auth,
     });
   }
+  async getAudioSize(id: string) {
+    return this.drive.files.get({
+      fileId: id,
+      fields: 'size',
+    });
+  }
   async uploadAudio(file: FileType) {
     const stream = streamifier.createReadStream(file.buffer);
 
